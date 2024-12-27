@@ -22,8 +22,7 @@ const generateResponse = async (chatElement) => {
     // Select the last outgoing message (latest one)
     const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
 
-    const API_URL = `http://localhost:3000/gemini/${encodeURIComponent(latestOutgoingMessage)}`;
-
+    const API_URL = `${window.location.origin}/gemini/${encodeURIComponent(latestOutgoingMessage)}`;
 
     fetch(API_URL).then(res => res.json()).then(data => {
         messageElement.textContent = data.trim();
