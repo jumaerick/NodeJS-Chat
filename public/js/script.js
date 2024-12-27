@@ -1,6 +1,7 @@
 const chatbotToggler = document.querySelector(".chatbot-toggler");
 const closeBtn = document.querySelector(".close-btn");
 const chatbox = document.querySelector(".chatbox");
+const chatbot = document.querySelector('.chatbot');
 const chatInput = document.querySelector(".chat-input textarea");
 const sendChatBtn = document.querySelector(".chat-input span");
 const inputInitHeight = chatInput.scrollHeight;
@@ -69,6 +70,32 @@ chatInput.addEventListener("keydown", (e) => {
     }
 });
 
+function hideChatbot() {
+
+}
+
+// Function to check if the click was outside the chatbot
+function handleClick(event) {
+    // Check if the click happened inside the chatbot
+    if (chatbot.contains(event.target)) {
+        console.log("Click inside the chatbot.");
+        // Here, you can keep the chatbot open or handle the internal click
+    } else {
+        document.body.classList.remove("show-chatbot")
+
+        // Here, you can close the chatbot if the click was outside
+    }
+}
+
+// Add event listener to detect clicks outside of the chatbot
+document.addEventListener('click', handleClick);
+
+chatbotToggler.addEventListener('click', function(event) {
+    event.stopPropagation(); // Prevent this click from propagating to the document listener
+    // Toggle chatbot visibility here
+    chatbot.classList.toggle('show-chatbot');
+});
+
 sendChatBtn.addEventListener("click", handleChat);
 closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
-chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
+chatbotToggler.addEventListener("click", ( ) => document.body.classList.toggle("show-chatbot"));
