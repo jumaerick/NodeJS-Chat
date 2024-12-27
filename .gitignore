@@ -66,7 +66,7 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public/
+#public/
 
 # Vuepress build output
 .vuepress/dist/
