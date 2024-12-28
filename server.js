@@ -19,8 +19,8 @@ const corsOptions = {
   methods: ['GET', 'POST'], // Allow only GET and POST methods
 };
 
+app.use(cors(corsOptions));
 
-app.use(cors());
 
 // Serve static files from the "public" directory
 const generateContent = require("./routes/gemini.js");
