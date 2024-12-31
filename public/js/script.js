@@ -25,7 +25,10 @@ const generateResponse = async (chatElement) => {
 
     const API_URL = `${window.location.origin}/gemini/${encodeURIComponent(latestOutgoingMessage)}`;
 
-    fetch(API_URL).then(res => res.json()).then(data => {
+    fetch(API_URL, {
+        method: 'POST', // Use POST method
+    })
+    .then(res => res.json()).then(data => {
         messageElement.textContent = data.trim();
     }).catch(() => {
         messageElement.classList.add("error");
