@@ -6,18 +6,10 @@ const PORT = 3000;
 
 const allowedOrigins = ['http://127.0.0.1:8000/'];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      // If the origin is in the allowed list or it's a server-side request (like a POST from a backend)
-      callback(null, true);
-    } else {
-      // If the origin is not allowed
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST'], // Allow only GET and POST methods
-};
+let corsOptions = {
+  origin :allowedOrigins,
+}
+
 
 app.use(cors(corsOptions));
 
