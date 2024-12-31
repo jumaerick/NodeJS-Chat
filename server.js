@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-const allowedOrigins = ['http://127.0.0.1:8000/'];
+const allowedOrigins = ['http://127.0.0.1:8000'];
 
 let corsOptions = {
   origin :allowedOrigins,
