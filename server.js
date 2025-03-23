@@ -28,6 +28,7 @@ let corsOptions = {
 
 
 app.use(cors(corsOptions));
+app.use(express.json());
 
 
 // Serve static files from the "public" directory
@@ -40,6 +41,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/saveMessage', (req, res) => {
+
   const { message, sender } = req.body;
 
   // Validate input
@@ -47,7 +49,7 @@ app.post('/saveMessage', (req, res) => {
       return res.status(400).send({ message: 'Message and sender are required.' });
   }
 
-  console.log('hapa');
+
   // Insert the message into the database
   const query = 'INSERT INTO messages (message, sender) VALUES (?, ?)';
   db.query(query, [message, sender], (err, result) => {

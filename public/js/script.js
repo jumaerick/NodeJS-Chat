@@ -24,7 +24,6 @@ const generateResponse = async (chatElement) => {
     const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
 
     const API_URL = `${window.location.origin}/gemini/${encodeURIComponent(latestOutgoingMessage)}`;
-    const MSG_URL = `${window.location.origin}/saveMessage`;
 
     fetch(API_URL, {
         method: 'POST', // Use POST method
@@ -39,6 +38,7 @@ const generateResponse = async (chatElement) => {
 };
 
 const handleChat = () => {
+    const MSG_URL = `${window.location.origin}/saveMessage`;
     const userMessage = chatInput.value.trim();
     if (!userMessage) return;
 
