@@ -24,6 +24,7 @@ const generateResponse = async (chatElement) => {
     const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
 
     const API_URL = `${window.location.origin}/gemini/${encodeURIComponent(latestOutgoingMessage)}`;
+    const MSG_URL = `${window.location.origin}/saveMessage`;
 
     fetch(API_URL, {
         method: 'POST', // Use POST method
@@ -38,25 +39,39 @@ const generateResponse = async (chatElement) => {
 };
 
 const handleChat = () => {
-    userMessage = chatInput.value.trim(); // Get user entered message and remove extra whitespace
+    const userMessage = chatInput.value.trim();
     if (!userMessage) return;
 
-    // Clear the input textarea and set its height to default
-    chatInput.value = "";
-    chatInput.style.height = `${inputInitHeight}px`;
+    // Save message to chat history in MySQL
+    fetch(MSG_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: userMessage, sender: 'user' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Message saved:', data);
 
-    // Append the user's message to the chatbox
-    chatbox.appendChild(createChatLi(userMessage, "outgoing"));
-    chatbox.scrollTo(0, chatbox.scrollHeight);
-
-    setTimeout(() => {
-        // Display "Thinking..." message while waiting for the response
-        const incomingChatLi = createChatLi("generating responses...", "incoming");
-        chatbox.appendChild(incomingChatLi);
+        // Append the message to the chatbox
+        chatInput.value = "";
+        chatInput.style.height = `${inputInitHeight}px`;
+        chatbox.appendChild(createChatLi(userMessage, "outgoing"));
         chatbox.scrollTo(0, chatbox.scrollHeight);
-        generateResponse(incomingChatLi);
-    }, 600);
-}
+
+        // Generate response (simulate bot response)
+        setTimeout(() => {
+            const incomingChatLi = createChatLi("generating responses...", "incoming");
+            chatbox.appendChild(incomingChatLi);
+            chatbox.scrollTo(0, chatbox.scrollHeight);
+            generateResponse(incomingChatLi);
+        }, 600);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
 
 chatInput.addEventListener("input", () => {
     // Adjust the height of the input textarea based on its content
