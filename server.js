@@ -20,7 +20,7 @@ db.connect(err => {
   console.log('Connected to MySQL');
 });
 
-const allowedOrigins = ['http://127.0.0.1:8000', 'https://courses.erevuka.org'];
+const allowedOrigins = ['https://courses.erevuka.org'];
 
 const corsOptions = {
   origin: function (origin, callback) {
