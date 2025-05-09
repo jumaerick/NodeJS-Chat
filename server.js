@@ -5,8 +5,6 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-const allowedOrigins = ['http://127.0.0.1:8000', 'https://courses.erevuka.org'];
-
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -22,9 +20,18 @@ db.connect(err => {
   console.log('Connected to MySQL');
 });
 
-let corsOptions = {
-  origin :allowedOrigins,
-}
+const allowedOrigins = ['http://127.0.0.1:8000', 'https://courses.erevuka.org'];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // if you're using cookies/auth
+};
 
 
 app.use(cors(corsOptions));
