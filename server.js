@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-const allowedOrigins = ['http://127.0.0.1:8000', 'https://erevuka.org/];
+const allowedOrigins = ['http://127.0.0.1:8000', 'https://courses.erevuka.org'];
 
 const db = mysql.createConnection({
   host: 'localhost',
