@@ -6,6 +6,7 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session); // Optional: for production session storage
 
 const generateContent = require('./routes/gemini.js'); // AI logic handler
+const erevukaContent = require('./routes/erevuka.js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -100,6 +101,8 @@ app.post('/saveMessage', (req, res) => {
 
 //
 app.post('/api/chat', generateContent);
+
+app.post('/api/chat/erevuka', erevukaContent);
 
 //
 app.listen(PORT, () => {

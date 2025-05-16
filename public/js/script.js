@@ -25,7 +25,7 @@ const generateResponse = async (chatElement) => {
     const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
 
     // Set up the API URL for the POST request
-    const API_URL = `${window.location.origin}/api/chat`;
+    const API_URL = `${window.location.origin}/api/chat/erevuka`;
 
     // Make a POST request with the message
     fetch(API_URL, {
@@ -66,7 +66,7 @@ const handleChat = () => {
             'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ message: userMessage })
+        body: JSON.stringify({ message: userMessage, platform:'Erevuka' })
     })
     .then(response => response.json())
     .then(data => {
