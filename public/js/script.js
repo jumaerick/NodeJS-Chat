@@ -20,26 +20,43 @@ const generateResponse = async (chatElement) => {
     // Extract the user message from the <p> element
     const outgoingMessages = document.querySelectorAll(".outgoing p");
     const messageElement = chatElement.querySelector("p");
+    
     // Select the last outgoing message (latest one)
     const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
 
-    const API_URL = `${window.location.origin}/gemini/${encodeURIComponent(latestOutgoingMessage)}`;
+    // Set up the API URL for the POST request
+    const API_URL = `${window.location.origin}/api/chat`;
 
+    // Make a POST request with the message
     fetch(API_URL, {
-        method: 'POST', // Use POST method
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ message: latestOutgoingMessage })  // Send the message in the request body
     })
-    .then(res => res.json()).then(data => {
-        messageElement.textContent = data.trim();
-    }).catch(() => {
+    .then(res => res.json())
+    .then(data => {
+        // Update the message element with the assistant's response
+        messageElement.textContent = data.response.trim();
+    })
+    .catch(() => {
+        // Handle errors gracefully
         messageElement.classList.add("error");
         messageElement.textContent = "Oops! Something went wrong. Please try again.";
-    }).finally(() => chatbox.scrollTo(0, chatbox.scrollHeight));
-
+    })
+    .finally(() => {
+        // Scroll to the bottom of the chatbox after the response is added
+        chatbox.scrollTo(0, chatbox.scrollHeight);
+    });
 };
+
 
 const handleChat = () => {
     const MSG_URL = `${window.location.origin}/saveMessage`;
     const userMessage = chatInput.value.trim();
+
     if (!userMessage) return;
 
     // Save message to chat history in MySQL
@@ -48,7 +65,8 @@ const handleChat = () => {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ message: userMessage, sender: 'user' })
+        credentials: 'include',
+        body: JSON.stringify({ message: userMessage })
     })
     .then(response => response.json())
     .then(data => {
