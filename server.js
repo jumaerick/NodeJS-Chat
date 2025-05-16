@@ -76,14 +76,15 @@ app.get('/', (req, res) => {
 
 //
 app.post('/saveMessage', (req, res) => {
-  const { message} = req.body;
+  const { message, project } = req.body;
   const sender = req.sessionID;  // Use the session ID as the sender
-  const project = req.headers.origin;
+  // const project = req.headers.origin;
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
   if (ip === '::1' || ip === '::ffff:127.0.0.1') {
   ip = '127.0.0.1';
 }
+console.log(req.body);
 
   if (!message || !sender) {
     return res.status(400).send({ message: 'Message and sender are required.' });
