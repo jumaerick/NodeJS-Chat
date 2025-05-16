@@ -76,9 +76,9 @@ app.get('/', (req, res) => {
 
 //
 app.post('/saveMessage', (req, res) => {
-  const { message, project } = req.body;
+  const { message} = req.body;
   const sender = req.sessionID;  // Use the session ID as the sender
-  // const project = req.headers.origin;
+  const project = req.body.platform;
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
   if (ip === '::1' || ip === '::ffff:127.0.0.1') {
