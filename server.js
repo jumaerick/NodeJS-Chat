@@ -1,31 +1,28 @@
+// Load environment variables
+require('dotenv').config();
+
 const express = require('express');
-const mysql = require('mysql2');
 const path = require('path');
 const cors = require('cors');
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session); // Optional: for production session storage
-
-const generateContent = require('./routes/gemini.js'); // AI logic handler
-const erevukaContent = require('./routes/erevuka.js');
+const rateLimit = require('express-rate-limit');
+const MySQLStore = require('express-mysql-session')(session);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  database: 'chatbot_db'
+// Import route modules for specific endpoints
+const geminiRoutes = require('./routes/gemini_routes/gemini'); // for Gemini general chat
+const erevukaRoutes = require('./routes/erevuka_routes/erevuka'); // for Erevuka-specific chat
+const messageRoutes = require('./routes/message');
+
+// Configure MySQL session store
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  database: process.env.DB_NAME || 'chatbot_db'
 });
 
-db.connect(err => {
-  if (err) {
-    console.error('Error connecting to MySQL:', err);
-    return;
-  }
-  console.log('Connected to MySQL');
-});
-
-// 
+// Configure CORS and allowed origins
 const allowedOrigins = [
   'https://courses.erevuka.org',
   'https://nodejs-chat-fi0c.onrender.com',
@@ -43,69 +40,46 @@ const corsOptions = {
   credentials: true
 };
 
+// Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// \
-const sessionStore = new MySQLStore({
-  host: 'localhost',
-  user: 'root',
-  database: 'chatbot_db'
-});
+// Trust proxy (important for secure cookies and IP tracking behind reverse proxies)
+app.set('trust proxy', 1);
 
-// \
+// Session configuration
 app.use(
   session({
-    secret: 'super-secret-session-key', // use process.env.SESSION_SECRET in production
+    secret: process.env.SESSION_SECRET || 'super-secret-session-key',
     resave: false,
-    saveUninitialized: true, // or false in prod for privacy
+    saveUninitialized: false, // safer for production
+    store: sessionStore,
     cookie: {
-      secure: false, // true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production', // true if HTTPS in production
       maxAge: 24 * 60 * 60 * 1000 // 1 day
-    },
-    // store: sessionStore // Uncomment for persistent sessions
+    }
   })
 );
 
-// \
-app.use(express.static(path.join(__dirname, 'public')));
+// Route usage
+app.use('/api', erevukaRoutes);
+app.use('/api', geminiRoutes);
+app.use('/api', messageRoutes);
+      // /api/chat/erevukae
 
+// Root route (serves index.html)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-//
-app.post('/saveMessage', (req, res) => {
-  const { message} = req.body;
-  const sender = req.sessionID;  // Use the session ID as the sender
-  const project = req.body.platform;
-  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-
-  if (ip === '::1' || ip === '::ffff:127.0.0.1') {
-  ip = '127.0.0.1';
-}
-console.log(req.body);
-
-  if (!message || !sender) {
-    return res.status(400).send({ message: 'Message and sender are required.' });
-  }
-
-  const query = 'INSERT INTO messages (message, user_id, project, remote_ip) VALUES (?, ?, ?, ?)';
-  db.query(query, [message, sender, project, ip], (err, result) => {
-    if (err) {
-      console.error('Error saving message to MySQL:', err);
-      return res.status(500).send({ message: 'Error saving message to database' });
-    }
-    res.status(200).send({ message: 'Message saved successfully' });
-  });
+// Global error handler (optional but good practice)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.message);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
-//
-app.post('/api/chat', generateContent);
-
-app.post('/api/chat/erevuka', erevukaContent);
-
-//
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

@@ -17,68 +17,97 @@ const createChatLi = (message, className) => {
 }
 
 const generateResponse = async (chatElement) => {
-    // Extract the user message from the <p> element
     const outgoingMessages = document.querySelectorAll(".outgoing p");
     const messageElement = chatElement.querySelector("p");
-    
-    // Select the last outgoing message (latest one)
-    const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
 
-    // Set up the API URL for the POST request
+    const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
     const API_URL = `${window.location.origin}/api/chat/erevuka`;
 
-    // Make a POST request with the message
-    fetch(API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ message: latestOutgoingMessage })  // Send the message in the request body
-    })
-    .then(res => res.json())
-    .then(data => {
-        // Update the message element with the assistant's response
-        messageElement.textContent = data.response.trim();
-    })
-    .catch(() => {
-        // Handle errors gracefully
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ message: latestOutgoingMessage })
+        });
+        console.log(response);
+        if (response.status === 429) {
+            const data = await response.json();
+            console.warn("Rate limit hit:", data);
+            messageElement.classList.add("error");
+            messageElement.textContent = data.error || "Too many requests. Please slow down.";
+            return;
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Unexpected server error');
+        }
+
+        const data = await response.json();
+        messageElement.textContent = data.response?.trim() || "No response received.";
+
+    } catch (error) {
+        console.error("Error generating response:", error);
         messageElement.classList.add("error");
         messageElement.textContent = "Oops! Something went wrong. Please try again.";
-    })
-    .finally(() => {
-        // Scroll to the bottom of the chatbox after the response is added
+    } finally {
         chatbox.scrollTo(0, chatbox.scrollHeight);
-    });
+    }
 };
 
 
 const handleChat = () => {
-    const MSG_URL = `${window.location.origin}/saveMessage`;
-    const userMessage = chatInput.value.trim();
 
+    const MSG_URL = `${window.location.origin}/api/saveMessage`;
+    const userMessage = chatInput.value.trim();
     if (!userMessage) return;
 
-    // Save message to chat history in MySQL
     fetch(MSG_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        credentials: 'include',
-        body: JSON.stringify({ message: userMessage, platform:'Erevuka' })
+        credentials: 'include', // Keeps session cookies (important!)
+        body: JSON.stringify({
+            message: userMessage,
+            platform: 'Erevuka' // or any value relevant to your app
+        })
     })
-    .then(response => response.json())
+    .then(response => {
+        // Check if the response status is 429 (Rate Limit Exceeded)
+        console.log(response, 'hapa');
+        if (response.status === 429) {
+            // If rate limit exceeded, show a friendly message
+            chatInput.value = "";
+            chatbox.appendChild(createChatLi("Too many requests. Please slow down and try again later.", "incoming"));
+            throw { status: 429, message: 'Rate limit exceeded' };  // Throwing the error with a specific status
+        }
+
+        // If the response is not OK (e.g., server error), reject the promise
+        if (!response.ok) {
+            return response.json().then(data => {
+                // Handle other errors and pass them to the catch block
+                return Promise.reject(data);
+            });
+        }
+
+        // If the response is OK, continue with processing the response data
+        console.log('Master')
+        return response.json();
+    })
     .then(data => {
         console.log('Message saved:', data);
 
-        // Append the message to the chatbox
+        // Update chat UI
         chatInput.value = "";
         chatInput.style.height = `${inputInitHeight}px`;
         chatbox.appendChild(createChatLi(userMessage, "outgoing"));
         chatbox.scrollTo(0, chatbox.scrollHeight);
 
-        // Generate response (simulate bot response)
+        // Bot typing simulation and response generation
         setTimeout(() => {
             const incomingChatLi = createChatLi("generating responses...", "incoming");
             chatbox.appendChild(incomingChatLi);
@@ -86,10 +115,23 @@ const handleChat = () => {
             generateResponse(incomingChatLi);
         }, 600);
     })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+.catch(error => {
+    // Log the error
+    console.error('Error saving message:', error);
+
+    // If it's a rate limit error, show the specific message
+    if (error.status === 429) {
+        // Rate-limited
+        chatInput.value = "";
+        chatbox.appendChild(createChatLi("Too many requests. Please slow down and try again later.", "incoming"));
+    } else {
+        // For all other errors, show the "Oops!" message
+        chatInput.value = "";
+        chatbox.appendChild(createChatLi("Oops! Something went wrong. Please try again.", "incoming"));
+    }
+});
 };
+
 
 chatInput.addEventListener("input", () => {
     // Adjust the height of the input textarea based on its content
