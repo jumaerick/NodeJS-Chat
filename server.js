@@ -31,7 +31,8 @@ if (process.env.NODE_ENV === 'production') {
 
   sessionStore = new pgSession({
     pool,
-    tableName: 'session'
+    tableName: 'session',
+    createTableIfMissing: true
   });
 
   console.log('Using PostgreSQL session store (production)');
