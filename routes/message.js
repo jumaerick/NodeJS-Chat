@@ -40,14 +40,28 @@ router.post('/saveMessage', async (req, res) => {
   const values = [message, sender, platform, ip];
 
   try {
-    if (isProduction) {
-      // PostgreSQL query (use $1, $2... for parameterized inputs)
-      const query = `
-        INSERT INTO messages (message, user_id, project, remote_ip)
-        VALUES ($1, $2, $3, $4)
-      `;
-      await db.query(query, values);
-    } else {
+if (isProduction) {
+  // Ensure table exists
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      message TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      project TEXT,
+      remote_ip TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `;
+  await db.query(createTableQuery);
+
+  // Now insert the message
+  const insertQuery = `
+    INSERT INTO messages (message, user_id, project, remote_ip)
+    VALUES ($1, $2, $3, $4)
+  `;
+  await db.query(insertQuery, values);
+}
+else {
       // MySQL query (use ? placeholders)
       const query = `
         INSERT INTO messages (message, user_id, project, remote_ip)
