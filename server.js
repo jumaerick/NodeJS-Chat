@@ -53,7 +53,7 @@ if (process.env.NODE_ENV === 'production') {
 // Configure CORS and allowed origins
 const allowedOrigins = [
   'https://courses.erevuka.org',
-  'https://nodejs-chat-fi0c.onrender.com',
+  'https://erevuka-chat.onrender.com',
   'http://localhost:3000'
 ];
 
