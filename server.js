@@ -5,7 +5,6 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,12 +14,41 @@ const erevukaRoutes = require('./routes/erevuka_routes/erevuka'); // for Erevuka
 const akiRoutes = require('./routes/aki_routes/aki'); // for Erevuka-specific chat
 const messageRoutes = require('./routes/message');
 
-// Configure MySQL session store
-const sessionStore = new MySQLStore({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  database: process.env.DB_NAME || 'chatbot_db'
-});
+// === Conditional session store setup ===
+let sessionStore;
+
+if (process.env.NODE_ENV === 'production') {
+  // PostgreSQL (Render)
+  const pgSession = require('connect-pg-simple')(session);
+  const { Pool } = require('pg');
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+
+  sessionStore = new pgSession({
+    pool,
+    tableName: 'session'
+  });
+
+  console.log('Using PostgreSQL session store (production)');
+} else {
+  // MySQL (local dev)
+  const MySQLStore = require('express-mysql-session')(session);
+
+  sessionStore = new MySQLStore({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'chatbot_db',
+    port: process.env.DB_PORT || 3306
+  });
+
+  console.log('Using MySQL session store (development)');
+}
 
 // Configure CORS and allowed origins
 const allowedOrigins = [
@@ -45,7 +73,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Trust proxy (important for secure cookies and IP tracking behind reverse proxies)
+// Trust proxy (important for secure cookies behind proxies like Render)
 app.set('trust proxy', 1);
 
 // Session configuration
@@ -53,10 +81,10 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET || 'super-secret-session-key',
     resave: false,
-    saveUninitialized: false, // safer for production
+    saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // true if HTTPS in production
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000 // 1 day
     }
   })
@@ -67,14 +95,13 @@ app.use('/api', erevukaRoutes);
 app.use('/api', geminiRoutes);
 app.use('/api', akiRoutes);
 app.use('/api', messageRoutes);
-      // /api/chat/erevukae
 
-// Root route (serves index.html)
+// Root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Global error handler (optional but good practice)
+// Global error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);
   res.status(500).json({ error: 'Internal Server Error' });
