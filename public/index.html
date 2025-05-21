@@ -1,28 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini</title>
+    <title>Erevuka Chat</title>
 
     <!-- Style CSS -->
     <link rel="stylesheet" href="./css/styles.css">
 </head>
+
 <body>
-    
+
     <div class="main">
 
         <div class="title-container">
-            <h1>Gemini  + NodeJS</h1>
+            <h1>Powered by Erevuka</h1>
         </div>
 
-        <button class="chatbot-toggler">
+        <!-- <button class="chatbot-toggler">
             <span><img src="https://img.icons8.com/?size=256&id=54385&format=png" alt=""></span>
             <span><img src="https://img.icons8.com/?size=256&id=71200&format=png" alt=""></span>
+        </button> -->
+
+        <button class="chatbot-toggler">Ask AI
         </button>
         <div class="chatbot">
-            <header class="close-btn">
-                <h2>Your AI Assist <span style="float:right;"> X</span></h2>
+            <header>
+
+                <h2>Your AI Assist
+                    <span class="close-btn" style="float:right;"> X</span>
+                                        <span id="maximize-btn">🗖</span>
+                </h2>
             </header>
             <ul class="chatbox">
                 <li class="chat incoming">
@@ -32,7 +41,8 @@
             </ul>
             <div class="chat-input">
                 <textarea placeholder="Enter a message..." spellcheck="false" required></textarea>
-                <span id="send-btn"><img src="https://img.icons8.com/?size=256&id=ZznWGhUzgWtS&format=png" alt=""></span>
+                <span id="send-btn"><img src="/images/arrow-image.png"
+                        alt=""></span>
             </div>
         </div>
     </div>
@@ -40,4 +50,5 @@
     <!-- Script JS -->
     <script src="./js/script.js"></script>
 </body>
+
 </html>

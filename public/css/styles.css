@@ -8,7 +8,7 @@
 }
 
 body {
-    background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+    background-color: #0CB2C8;
     height: 100vh;
 }
 
@@ -19,7 +19,7 @@ body {
     height: 100vh;
 }
 
-.title-container h1 {
+.title-container h1, h5 {
     width: 80%;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     border-radius: 10px;
@@ -32,10 +32,12 @@ body {
 
 .chatbot-toggler {
     position: fixed;
+    top:50%;
     bottom: 30px;
     right: 35px;
     outline: none;
     border: none;
+    color: white;
     height: 50px;
     width: 50px;
     display: flex;
@@ -43,7 +45,7 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: #c6e1ff;
+    background: #ed1e79;
     transition: all 0.2s ease;
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
@@ -103,7 +105,7 @@ body.show-chatbot .chatbot {
     padding: 16px 0;
     position: relative;
     color: #fff;
-    background: #529cf1;
+    background: #23245f;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
@@ -173,7 +175,8 @@ header h2 {
     max-width: 75%;
     color: #fff;
     font-size: 0.95rem;
-    background: #33a6fd;
+    background: #23245f;
+
 }
 
 .chatbox .incoming p {
@@ -209,19 +212,26 @@ header h2 {
     height: 50px;
     width: 90%;
     border: none;
-    border-bottom: 1px solid #949494;
+    border-bottom: 1px solid white;
     outline: none;
     resize: none;
     max-height: 180px;
     padding: 15px 15px 5px 5px;
     font-size: 0.95rem;
     margin-left: 10px;
+    color: white !important;
     background-color: transparent;
 
 }
 
+.chat-input textarea::placeholder {
+  color: white; 
+  opacity: 1;  
+}
+
+
 .chatbot .chat-input {
-    background-color: #c8e2ff;
+    background-color: #23245f;
 }
 
 .chat-input span {
@@ -240,6 +250,30 @@ header h2 {
 
 .chat-input textarea:valid ~ span {
     visibility: visible;
+}
+
+
+body.maximize-chatbot .chatbot {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;           /* or any fixed value like 600px */
+  max-width: 800px;
+  height: 90vh;
+  max-height: 700px;
+
+  background: white;
+  border-radius: 10px;
+  z-index: 10000;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+
+#maximize-btn{
+    float: right;
+    margin-right: 2em;
 }
 
 @media (max-width: 490px) {
@@ -265,3 +299,16 @@ header h2 {
         display: block;
     }
 } 
+
+@media (max-width: 600px) {
+  body.maximize-chatbot .chatbot {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    top: 0;
+    left: 0;
+    transform: none;
+    border-radius: 0;
+  }
+}

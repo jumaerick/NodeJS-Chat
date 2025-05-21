@@ -5,7 +5,6 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const session = require('express-session');
-const rateLimit = require('express-rate-limit');
 const MySQLStore = require('express-mysql-session')(session);
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Import route modules for specific endpoints
 const geminiRoutes = require('./routes/gemini_routes/gemini'); // for Gemini general chat
 const erevukaRoutes = require('./routes/erevuka_routes/erevuka'); // for Erevuka-specific chat
+const akiRoutes = require('./routes/aki_routes/aki'); // for Erevuka-specific chat
 const messageRoutes = require('./routes/message');
 
 // Configure MySQL session store
@@ -65,6 +65,7 @@ app.use(
 // Route usage
 app.use('/api', erevukaRoutes);
 app.use('/api', geminiRoutes);
+app.use('/api', akiRoutes);
 app.use('/api', messageRoutes);
       // /api/chat/erevukae
 

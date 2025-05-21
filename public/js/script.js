@@ -4,6 +4,7 @@ const chatbox = document.querySelector(".chatbox");
 const chatbot = document.querySelector('.chatbot');
 const chatInput = document.querySelector(".chat-input textarea");
 const sendChatBtn = document.querySelector(".chat-input span");
+const maximizeBtn = document.getElementById("maximize-btn");
 const inputInitHeight = chatInput.scrollHeight;
 
 const createChatLi = (message, className) => {
@@ -21,7 +22,7 @@ const generateResponse = async (chatElement) => {
     const messageElement = chatElement.querySelector("p");
 
     const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
-    const API_URL = `${window.location.origin}/api/chat/erevuka`;
+    const API_URL = `${window.location.origin}/api/chat/aki`;
 
     try {
         const response = await fetch(API_URL, {
@@ -73,7 +74,7 @@ const handleChat = () => {
         credentials: 'include', // Keeps session cookies (important!)
         body: JSON.stringify({
             message: userMessage,
-            platform: 'Erevuka' // or any value relevant to your app
+            platform: 'AKI' // or any value relevant to your app
         })
     })
     .then(response => {
@@ -175,5 +176,15 @@ chatbotToggler.addEventListener('click', function(event) {
 });
 
 sendChatBtn.addEventListener("click", handleChat);
-closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
+// closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
 chatbotToggler.addEventListener("click", ( ) => document.body.classList.toggle("show-chatbot"));
+closeBtn.addEventListener("click", () => {
+  document.body.classList.remove("show-chatbot", "maximize-chatbot");
+    const isMaximized = document.body.classList.contains("maximize-chatbot");
+  maximizeBtn.textContent = isMaximized ? "🗕" : "🗖";
+});
+maximizeBtn.addEventListener("click", () => {
+  document.body.classList.toggle("maximize-chatbot");
+  const isMaximized = document.body.classList.contains("maximize-chatbot");
+  maximizeBtn.textContent = isMaximized ? "🗕" : "🗖";
+});
