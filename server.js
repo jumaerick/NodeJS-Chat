@@ -54,7 +54,7 @@ if (process.env.NODE_ENV === 'production') {
 const allowedOrigins = [
   'https://courses.erevuka.org',
   'https://erevuka-chat.onrender.com',
-  'http://localhost:3000'
+  'http://localhost:1000'
 ];
 
 const corsOptions = {
