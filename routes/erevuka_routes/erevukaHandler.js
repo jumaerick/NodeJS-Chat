@@ -4,6 +4,8 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+const MAX_INPUT_LENGTH = 200;
+
 const generateContent = async (req, res) => {
   const { message } = req.body;
 
@@ -11,10 +13,12 @@ const generateContent = async (req, res) => {
     return res.status(400).json({ error: "Message is required" });
   }
 
+    const trimmedMessage = message.slice(0, MAX_INPUT_LENGTH);
+
   req.session.conversationContext ||= ""; // Modern shorthand
 
   try {
-    req.session.conversationContext += `User: ${message}\n`;
+    req.session.conversationContext += `User: ${trimmedMessage}\n`;
     const prompt = req.session.conversationContext + "Assistant: ";
 
     const result = await model.generateContent(prompt);

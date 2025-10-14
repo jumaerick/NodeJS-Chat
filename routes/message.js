@@ -1,87 +1,87 @@
-const express = require('express');
+import express from "express";
+import pkg from "pg";
+import mysql from "mysql2";
+
 const router = express.Router();
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === "production";
 
 let db;
+
 if (isProduction) {
-  // PostgreSQL
-  const { Pool } = require('pg');
+  // === PostgreSQL ===
+  const { Pool } = pkg;
   db = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false },
   });
 } else {
-  // MySQL
-  const mysql = require('mysql2');
+  // === MySQL ===
   db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'chatbot_db',
-    port: process.env.DB_PORT || 3306
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "chatbot_db",
+    port: process.env.DB_PORT || 3306,
   });
 }
 
-// POST /api/saveMessage
-router.post('/saveMessage', async (req, res) => {
+// === POST /api/saveMessage ===
+router.post("/saveMessage", async (req, res) => {
   const { message, platform } = req.body;
   const sender = req.sessionID;
-  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  let ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
-  if (ip === '::1' || ip === '::ffff:127.0.0.1') {
-    ip = '127.0.0.1';
-  }
+  if (ip === "::1" || ip === "::ffff:127.0.0.1") ip = "127.0.0.1";
 
   if (!message || !sender) {
-    return res.status(400).json({ message: 'Message and sender are required.' });
+    return res.status(400).json({ message: "Message and sender are required." });
   }
 
   const values = [message, sender, platform, ip];
 
   try {
-if (isProduction) {
-  // Ensure table exists
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS messages (
-      id SERIAL PRIMARY KEY,
-      message TEXT NOT NULL,
-      user_id TEXT NOT NULL,
-      project TEXT,
-      remote_ip TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `;
-  await db.query(createTableQuery);
+    if (isProduction) {
+      // === Ensure messages table exists ===
+      const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS messages (
+          id SERIAL PRIMARY KEY,
+          message TEXT NOT NULL,
+          user_id TEXT NOT NULL,
+          project TEXT,
+          remote_ip TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `;
+      await db.query(createTableQuery);
 
-  // Now insert the message
-  const insertQuery = `
-    INSERT INTO messages (message, user_id, project, remote_ip)
-    VALUES ($1, $2, $3, $4)
-  `;
-  await db.query(insertQuery, values);
-}
-else {
-      // MySQL query (use ? placeholders)
+      // === Insert into PostgreSQL ===
+      const insertQuery = `
+        INSERT INTO messages (message, user_id, project, remote_ip)
+        VALUES ($1, $2, $3, $4)
+      `;
+      await db.query(insertQuery, values);
+      res.status(200).json({ message: "Message saved successfully (PostgreSQL)" });
+
+    } else {
+      // === Insert into MySQL ===
       const query = `
         INSERT INTO messages (message, user_id, project, remote_ip)
         VALUES (?, ?, ?, ?)
       `;
       db.query(query, values, (err) => {
         if (err) {
-          console.error('Error saving message to MySQL:', err);
-          return res.status(500).json({ message: 'Error saving message to database' });
+          console.error("Error saving message to MySQL:", err);
+          return res.status(500).json({ message: "Error saving message to database" });
         }
-        return res.status(200).json({ message: 'Message saved successfully' });
+        console.log('saved to mysql');
+        return res.status(200).json({ message: "Message saved successfully (MySQL)" });
       });
-      return; // prevent sending two responses in dev
     }
-
-    res.status(200).json({ message: 'Message saved successfully' });
   } catch (err) {
-    console.error('Error saving message to PostgreSQL:', err);
-    res.status(500).json({ message: 'Error saving message to database' });
+    console.error("Error saving message:", err);
+    res.status(500).json({ message: "Error saving message to database" });
   }
 });
 
-module.exports = router;
+export default router;

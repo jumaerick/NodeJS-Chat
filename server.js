@@ -1,115 +1,122 @@
-// Load environment variables
-require('dotenv').config();
+// server.js
+import dotenv from "dotenv";
+import express from "express";
+import path from "path";
+import cors from "cors";
+import session from "express-session";
+import expressMySQLSession from "express-mysql-session";
+import connectPgSimple from "connect-pg-simple";
+import pkg from "pg";
+import { fileURLToPath } from "url";
 
-const express = require('express');
-const path = require('path');
-const cors = require('cors');
-const session = require('express-session');
+// Fix __dirname and __filename for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables
+dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Import route modules for specific endpoints
-const geminiRoutes = require('./routes/gemini_routes/gemini'); // for Gemini general chat
-const erevukaRoutes = require('./routes/erevuka_routes/erevuka'); // for Erevuka-specific chat
-const akiRoutes = require('./routes/aki_routes/aki'); // for Erevuka-specific chat
-const messageRoutes = require('./routes/message');
-
 // === Conditional session store setup ===
 let sessionStore;
+const MySQLStore = expressMySQLSession(session);
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   // PostgreSQL (Render)
-  const pgSession = require('connect-pg-simple')(session);
-  const { Pool } = require('pg');
+  const { Pool } = pkg;
+  const pgSession = connectPgSimple(session);
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false
-    }
+    ssl: { rejectUnauthorized: false },
   });
 
   sessionStore = new pgSession({
     pool,
-    tableName: 'session',
-    createTableIfMissing: true
+    tableName: "session",
+    createTableIfMissing: true,
   });
 
-  console.log('Using PostgreSQL session store (production)');
+  console.log("Using PostgreSQL session store (production)");
 } else {
   // MySQL (local dev)
-  const MySQLStore = require('express-mysql-session')(session);
-
   sessionStore = new MySQLStore({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'chatbot_db',
-    port: process.env.DB_PORT || 3306
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "chatbot_db",
+    port: process.env.DB_PORT || 3306,
   });
 
-  console.log('Using MySQL session store (development)');
+  console.log("Using MySQL session store (development)");
 }
 
-// Configure CORS and allowed origins
+// === Routes ===
+// Uncomment or add these once the files exist
+import geminiRoutes from "./routes/gemini_routes/gemini.js";
+// import erevukaRoutes from "./routes/erevuka_routes/erevuka.js";
+import akiRoutes from "./routes/aki_routes/aki.js";
+import messageRoutes from "./routes/message.js";
+
+// === CORS setup ===
 const allowedOrigins = [
-  'https://courses.erevuka.org',
-  'https://erevuka-chat.onrender.com',
-  'http://localhost:1000'
+  "https://courses.erevuka.org",
+  "https://erevuka-chat.onrender.com",
+  "http://localhost:1000",
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true
+  credentials: true,
 };
 
-// Middleware
+// === Middleware ===
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
+app.set("trust proxy", 1);
 
-// Trust proxy (important for secure cookies behind proxies like Render)
-app.set('trust proxy', 1);
-
-// Session configuration
+// === Session ===
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'super-secret-session-key',
+    secret: process.env.SESSION_SECRET || "super-secret-session-key",
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
-    }
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    },
   })
 );
 
-// Route usage
-app.use('/api', erevukaRoutes);
-app.use('/api', geminiRoutes);
-app.use('/api', akiRoutes);
-app.use('/api', messageRoutes);
+// === Route usage ===
+app.use("/api", geminiRoutes);
+// app.use("/api", erevukaRoutes);
+app.use("/api", akiRoutes);
+app.use("/api", messageRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// === Root route ===
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Global error handler
+// === Global error handler ===
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err.message);
-  res.status(500).json({ error: 'Internal Server Error' });
+  console.error("Unhandled error:", err.message);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
-// Start server
+// === Start server ===
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });

@@ -1,7 +1,9 @@
-const express = require('express');
+import express from "express";
+import { generateContent } from "./geminiHandler.js"; // named import
+
 const router = express.Router();
-const generateContent = require('./geminiHandler');
 
-router.post('/chat/gemini', generateContent);
+// Define the route
+router.post("/chat/gemini", generateContent);
 
-module.exports = router;
+export default router;

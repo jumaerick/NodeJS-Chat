@@ -1,18 +1,21 @@
-const express = require('express');
-const rateLimit = require('express-rate-limit');
-const router = express.Router();
-const generateContent = require('./akiHandler');
+// routes/aki_routes/aki.js
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import generateContent from './akiHandler.js';
 
-// Rate limiter setup - 10 requests per session per minute
+const router = express.Router();
+
+// Rate limiter setup - 5 requests per session per minute
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute window
-  max: 5, // limit each session (req.sessionID) to 10 requests per minute
-  keyGenerator: (req) => req.sessionID, // Use session ID as the key for rate limiting
+  max: 5,
+  keyGenerator: (req) => req.sessionID, // Use session ID for rate limiting
   message: { error: "Too many requests from your session. Please slow down." },
-  statusCode: 429
+  statusCode: 429,
 });
 
-// Apply rate limiter to the /chat/erevuka route
+// Apply rate limiter to /chat/aki route
 router.post('/chat/aki', chatLimiter, generateContent);
 
-module.exports = router;
+// Export router as default (required for ESM import)
+export default router;
