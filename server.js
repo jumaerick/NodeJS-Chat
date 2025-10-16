@@ -65,8 +65,12 @@ import messageRoutes from "./routes/message.js";
 const allowedOrigins = [
   "https://courses.erevuka.org",
   "https://erevuka-chat.onrender.com",
+  "https://apps.courses.farwell-consultants.com",
+  "https://courses.farwell-consultants.com",
+  "https://courses.akinsure.com",
+  "https://apps.courses.akinsure.com",
+  "https://api.erevuka.org",
   "http://localhost:1000",
-  "http://localhost:3000",
 ];
 
 const corsOptions = {
