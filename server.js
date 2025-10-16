@@ -42,6 +42,7 @@ if (process.env.NODE_ENV === "production") {
   console.log("Using PostgreSQL session store (production)");
 } else {
   // MySQL (local dev)
+  // console.log(process.env.DB_PASSWORD);
   sessionStore = new MySQLStore({
     host: process.env.DB_HOST || "localhost",
     user: process.env.DB_USER || "root",
@@ -56,7 +57,7 @@ if (process.env.NODE_ENV === "production") {
 // === Routes ===
 // Uncomment or add these once the files exist
 import geminiRoutes from "./routes/gemini_routes/gemini.js";
-// import erevukaRoutes from "./routes/erevuka_routes/erevuka.js";
+import erevukaRoutes from "./routes/erevuka_routes/erevuka.js";
 import akiRoutes from "./routes/aki_routes/aki.js";
 import messageRoutes from "./routes/message.js";
 
@@ -65,6 +66,7 @@ const allowedOrigins = [
   "https://courses.erevuka.org",
   "https://erevuka-chat.onrender.com",
   "http://localhost:1000",
+  "http://localhost:3000",
 ];
 
 const corsOptions = {
@@ -101,7 +103,7 @@ app.use(
 
 // === Route usage ===
 app.use("/api", geminiRoutes);
-// app.use("/api", erevukaRoutes);
+app.use("/api", erevukaRoutes);
 app.use("/api", akiRoutes);
 app.use("/api", messageRoutes);
 
@@ -118,5 +120,5 @@ app.use((err, req, res, next) => {
 
 // === Start server ===
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

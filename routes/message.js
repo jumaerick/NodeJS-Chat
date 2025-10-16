@@ -7,6 +7,7 @@ const router = express.Router();
 const isProduction = process.env.NODE_ENV === "production";
 
 let db;
+let mysqlPromise;
 
 if (isProduction) {
   // === PostgreSQL ===
@@ -24,6 +25,9 @@ if (isProduction) {
     database: process.env.DB_NAME || "chatbot_db",
     port: process.env.DB_PORT || 3306,
   });
+
+  // use promise wrapper for async/await
+  mysqlPromise = db.promise();
 }
 
 // === POST /api/saveMessage ===
@@ -42,9 +46,9 @@ router.post("/saveMessage", async (req, res) => {
 
   try {
     if (isProduction) {
-      // === Ensure messages table exists ===
+      // === Ensure messages table exists (PostgreSQL) ===
       const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS messages (
+        CREATE TABLE IF NOT EXISTS chatbot_logs (
           id SERIAL PRIMARY KEY,
           message TEXT NOT NULL,
           user_id TEXT NOT NULL,
@@ -57,30 +61,39 @@ router.post("/saveMessage", async (req, res) => {
 
       // === Insert into PostgreSQL ===
       const insertQuery = `
-        INSERT INTO messages (message, user_id, project, remote_ip)
+        INSERT INTO chatbot_logs (message, user_id, project, remote_ip)
         VALUES ($1, $2, $3, $4)
       `;
       await db.query(insertQuery, values);
-      res.status(200).json({ message: "Message saved successfully (PostgreSQL)" });
+      return res.status(200).json({ message: "Message saved successfully (PostgreSQL)" });
 
     } else {
-      // === Insert into MySQL ===
-      const query = `
-        INSERT INTO messages (message, user_id, project, remote_ip)
+      //Ensure chatbot_logs table exists (MySQL) ===
+      const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS chatbot_logs (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          message TEXT NOT NULL,
+          user_id VARCHAR(255) NOT NULL,
+          project VARCHAR(255),
+          remote_ip VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+      await mysqlPromise.query(createTableQuery);
+
+      // Insert into MySQL ===
+      const insertQuery = `
+        INSERT INTO chatbot_logs (message, user_id, project, remote_ip)
         VALUES (?, ?, ?, ?)
       `;
-      db.query(query, values, (err) => {
-        if (err) {
-          console.error("Error saving message to MySQL:", err);
-          return res.status(500).json({ message: "Error saving message to database" });
-        }
-        console.log('saved to mysql');
-        return res.status(200).json({ message: "Message saved successfully (MySQL)" });
-      });
+      await mysqlPromise.query(insertQuery, values);
+
+      console.log("Message saved to MySQL");
+      return res.status(200).json({ message: "Message saved successfully (MySQL)" });
     }
   } catch (err) {
     console.error("Error saving message:", err);
-    res.status(500).json({ message: "Error saving message to database" });
+    return res.status(500).json({ message: "Error saving message to database" });
   }
 });
 

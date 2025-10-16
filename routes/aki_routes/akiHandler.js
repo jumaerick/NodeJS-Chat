@@ -8,7 +8,6 @@ const MAX_INPUT_LENGTH = 200;
 
 export const generateContent = async (req, res) => {
   const { message } = req.body;
-
   if (!message) {
     return res.status(400).json({ error: "Message is required" });
   }
@@ -20,13 +19,13 @@ export const generateContent = async (req, res) => {
     req.session.conversationContext += `User: ${trimmedMessage}\n`;
     const prompt = req.session.conversationContext + "Assistant:";
 
-    // ✅ use plain string, as per docs
+    // use plain string, as per docs
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
     });
 
-    // ✅ use response.text directly
+    // use response.text directly
     const text = response.text || "No response text found.";
 
     req.session.conversationContext += `Assistant: ${text}\n`;

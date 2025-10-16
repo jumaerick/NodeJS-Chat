@@ -1,7 +1,7 @@
-const express = require('express');
-const rateLimit = require('express-rate-limit');
+import express from 'express'
+import rateLimit from 'express-rate-limit';
+import generateContent from './erevukaHandler.js';
 const router = express.Router();
-const generateContent = require('./erevukaHandler');
 
 // Rate limiter setup - 10 requests per session per minute
 const chatLimiter = rateLimit({
@@ -15,4 +15,5 @@ const chatLimiter = rateLimit({
 // Apply rate limiter to the /chat/erevuka route
 router.post('/chat/erevuka', chatLimiter, generateContent);
 
-module.exports = router;
+// Export router as default (required for ESM import)
+export default router;
