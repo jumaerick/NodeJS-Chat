@@ -17,13 +17,13 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 // === Conditional session store setup ===
 let sessionStore;
 const MySQLStore = expressMySQLSession(session);
 
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "testing") {
   // PostgreSQL (Render)
   const { Pool } = pkg;
   const pgSession = connectPgSimple(session);
@@ -63,13 +63,14 @@ import messageRoutes from "./routes/message.js";
 
 // === CORS setup ===
 const allowedOrigins = [
-  //Erevuka domains
   "https://courses.erevuka.org",
   "https://erevuka-chat.onrender.com",
   "https://apps.courses.farwell-consultants.com",
   "https://courses.farwell-consultants.com",
   "https://courses.akinsure.com",
   "https://apps.courses.akinsure.com",
+  "https://api.erevuka.org",
+  "http://localhost:1000",
   "http://localhost:3000",
 ];
 
@@ -98,8 +99,8 @@ app.use(
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV == "production",
+      sameSite: process.env.NODE_ENV == "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })

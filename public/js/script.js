@@ -1,3 +1,7 @@
+//Platform where the chat is originating from
+const config = JSON.parse(document.getElementById("chat-config").textContent);
+const platform = config.platform_id;
+
 const chatbotToggler = document.querySelector(".chatbot-toggler");
 const closeBtn = document.querySelector(".close-btn");
 const chatbox = document.querySelector(".chatbox");
@@ -17,7 +21,7 @@ const createChatLi = (message, className) => {
     return chatLi; // return chat <li> element
 }
 
-const generateResponse = async (chatElement) => {
+    const generateResponse = async (chatElement) => {
     const outgoingMessages = document.querySelectorAll(".outgoing p");
     const messageElement = chatElement.querySelector("p");
 
@@ -26,25 +30,28 @@ const generateResponse = async (chatElement) => {
 
     try {
         const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({ message: latestOutgoingMessage })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ message: latestOutgoingMessage })
         });
-        console.log(response);
+
         if (response.status === 429) {
-            const data = await response.json();
-            console.warn("Rate limit hit:", data);
-            messageElement.classList.add("error");
-            messageElement.textContent = data.error || "Too many requests. Please slow down.";
-            return;
+        messageElement.classList.add("error");
+        messageElement.textContent = "Too many requests. Please slow down.";
+        return;
+        }
+
+        if (response.status === 503) {
+        // Show AI overload message
+        messageElement.classList.add("error");
+        messageElement.textContent = "The AI model is busy. Try again in a few seconds.";
+        return;
         }
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Unexpected server error');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Unexpected server error');
         }
 
         const data = await response.json();
@@ -57,7 +64,7 @@ const generateResponse = async (chatElement) => {
     } finally {
         chatbox.scrollTo(0, chatbox.scrollHeight);
     }
-};
+    };
 
 
 const handleChat = () => {
@@ -74,7 +81,7 @@ const handleChat = () => {
         credentials: 'include', // Keeps session cookies (important!)
         body: JSON.stringify({
             message: userMessage,
-            platform: 'AKI' // or any value relevant to your app
+            platform: platform // or any value relevant to your app
         })
     })
     .then(response => {
