@@ -22,7 +22,7 @@ const generateResponse = async (chatElement) => {
     const messageElement = chatElement.querySelector("p");
 
     const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]?.textContent;
-    const API_URL = `${window.location.origin}/api/chat/aki`;
+    const API_URL = 'https://api.erevuka.org/api/chat/aki';
 
     try {
         const response = await fetch(API_URL, {
@@ -62,7 +62,7 @@ const generateResponse = async (chatElement) => {
 
 const handleChat = () => {
 
-    const MSG_URL = `${window.location.origin}/api/saveMessage`;
+    const MSG_URL = 'https://api.erevuka.org/api/saveMessage';
     const userMessage = chatInput.value.trim();
     if (!userMessage) return;
 
@@ -96,11 +96,10 @@ const handleChat = () => {
         }
 
         // If the response is OK, continue with processing the response data
-        console.log('Master')
         return response.json();
     })
     .then(data => {
-        console.log('Message saved:', data);
+
 
         // Update chat UI
         chatInput.value = "";

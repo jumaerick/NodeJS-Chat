@@ -47,7 +47,16 @@
     </div>
 
     <!-- Script JS -->
-    <script src="./js/script.js"></script>
+    <script id="chat-config" type="application/json">
+    { "platform_id": "Chat application" }
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var script = document.createElement("script");
+        script.src = "./js/script.js?v=" + new Date().getTime();
+        document.body.appendChild(script);
+    });
+    </script>
 </body>
 
 </html>
