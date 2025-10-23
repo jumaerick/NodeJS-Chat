@@ -1,48 +1,41 @@
-// server.js
-import dotenv from "dotenv";
-import express from "express";
-import path from "path";
-import cors from "cors";
-import session from "express-session";
-import expressMySQLSession from "express-mysql-session";
-import connectPgSimple from "connect-pg-simple";
-import pkg from "pg";
-import { fileURLToPath } from "url";
-
-// Fix __dirname and __filename for ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Load environment variables
-dotenv.config();
+require("dotenv").config();
 
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+const session = require("express-session");
 const app = express();
+const mysql = require("mysql");
 const PORT = process.env.PORT || 3000;
+
+// Import route modules for specific endpoints
+const geminiRoutes = require("./routes/gemini_routes/gemini"); // for Gemini general chat
+const erevukaRoutes = require("./routes/erevuka_routes/erevuka"); // for Erevuka-specific chat
+const akiRoutes = require("./routes/aki_routes/aki"); // for Erevuka-specific chat
+const messageRoutes = require("./routes/message");
 
 // === Conditional session store setup ===
 let sessionStore;
 const MySQLStore = expressMySQLSession(session);
 
 if (process.env.NODE_ENV === "production") {
-  // PostgreSQL (Render)
-  const { Pool } = pkg;
-  const pgSession = connectPgSimple(session);
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
-  sessionStore = new pgSession({
-    pool,
-    tableName: "session",
-    createTableIfMissing: true,
-  });
-
-  console.log("Using PostgreSQL session store (production)");
-} else {
-  // MySQL (local dev)
-  // console.log(process.env.DB_PASSWORD);
+  //   // PostgreSQL (Render)
+  //   // const pgSession = require('connect-pg-simple')(session);
+  //   // const { Pool } = require('pg');
+  //   // const pool = new Pool({
+  //   //   connectionString: process.env.DATABASE_URL,
+  //   //   ssl: {
+  //   //     rejectUnauthorized: false
+  //   //   }
+  //   // });
+  //   // sessionStore = new pgSession({
+  //   //   pool,
+  //   //   tableName: 'session',
+  //   //   createTableIfMissing: true
+  //   // });
+  //   // console.log('Using PostgreSQL session store (production)');
+  const MySQLStore = require("express-mysql-session")(session);
   sessionStore = new MySQLStore({
     host: process.env.DB_HOST || "localhost",
     user: process.env.DB_USER || "root",
@@ -50,7 +43,17 @@ if (process.env.NODE_ENV === "production") {
     database: process.env.DB_NAME || "chatbot_db",
     port: process.env.DB_PORT || 3306,
   });
-
+  console.log("Using MySQL session store (production)");
+} else {
+  // MySQL (local dev)
+  const MySQLStore = require("express-mysql-session")(session);
+  sessionStore = new MySQLStore({
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "chatbot_db",
+    port: process.env.DB_PORT || 3306,
+  });
   console.log("Using MySQL session store (development)");
 }
 
@@ -89,9 +92,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+// Trust proxy (important for secure cookies behind proxies like Render)
 app.set("trust proxy", 1);
 
-// === Session ===
+// Session configuration
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "super-secret-session-key",
@@ -106,13 +111,13 @@ app.use(
   })
 );
 
-// === Route usage ===
-app.use("/api", geminiRoutes);
+// Route usage
 app.use("/api", erevukaRoutes);
+app.use("/api", geminiRoutes);
 app.use("/api", akiRoutes);
 app.use("/api", messageRoutes);
 
-// === Root route ===
+// Root route
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -125,5 +130,5 @@ app.use((err, req, res, next) => {
 
 // === Start server ===
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at ${PORT}`);
 });
