@@ -4,12 +4,12 @@ import mysql from "mysql2";
 
 const router = express.Router();
 
-const isProduction = process.env.NODE_ENV === "production";
+const isDevelopment = process.env.NODE_ENV === "production";
 
 let db;
 let mysqlPromise;
 
-if (isProduction) {
+if (isDevelopment) {
   // === PostgreSQL ===
   const { Pool } = pkg;
   db = new Pool({
@@ -45,7 +45,7 @@ router.post("/saveMessage", async (req, res) => {
   const values = [message, sender, platform, ip];
 
   try {
-    if (isProduction) {
+    if (isDevelopment) {
       // === Ensure messages table exists (PostgreSQL) ===
       const createTableQuery = `
         CREATE TABLE IF NOT EXISTS chatbot_logs (
