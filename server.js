@@ -71,6 +71,7 @@ const allowedOrigins = [
   "https://apps.courses.akinsure.com",
   "https://api.erevuka.org",
   "http://localhost:1000",
+  "http://localhost:3000",
 ];
 
 const corsOptions = {
