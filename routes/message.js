@@ -4,7 +4,7 @@ import mysql from "mysql2";
 
 const router = express.Router();
 
-const isDevelopment = process.env.NODE_ENV === "production";
+const isDevelopment = process.env.NODE_ENV === "development";
 
 let db;
 let mysqlPromise;
