@@ -9,6 +9,7 @@
         "php": "^8.2",
         "area17/twill": "^3.4",
         "google/apiclient": "^2.18",
+        "guzzlehttp/guzzle": "^7.10",
         "laravel/framework": "^10.0 || ^11.0",
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1"

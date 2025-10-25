@@ -28,3 +28,5 @@ Route::get('/dashboard', function () {
 })->middleware('auth')->name('dashboard');
 
 Route::get('/recommendations', [HomeController::class, 'recommendation'])->middleware('auth')->name('recommendations');
+Route::get('/chatLogs/{id}', [HomeController::class, 'akiChatLogs'])->name('akiChatLogs');
+

@@ -105,6 +105,11 @@ return [
         ),
     ],
 
+    'platform_settings' => [
+        'platform_id' => env('PLATFORM_ID', 3),
+        'chat_api_url' => env('CHAT_API_URL', 'http://api.erevuka.org/chatLogs'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver
