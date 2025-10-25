@@ -54,6 +54,7 @@ class HomeController extends Controller
             if($response->successful()){
                 
                 $data = collect($response->json());
+                // dd($data);
                         // Slice the collection for the current page
                 $currentItems = $data->slice(($currentPage - 1) * $perPage, $perPage)->values();
 
