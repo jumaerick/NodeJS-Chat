@@ -4,10 +4,16 @@ import express from "express";
 import path from "path";
 import cors from "cors";
 import session from "express-session";
-import expressMySQLSession from "express-mysql-session";
-import connectPgSimple from "connect-pg-simple";
-import pkg from "pg";
 import { fileURLToPath } from "url";
+import { sessionStore } from './config/db.js';
+
+//import routes
+import geminiRoutes from "./routes/gemini_routes/gemini.js";
+import erevukaRoutes from "./routes/erevuka_routes/erevuka.js";
+import akiRoutes from "./routes/aki_routes/aki.js";
+import messageRoutes from "./routes/message.js";
+import userRoutes from './routes/userRoutes.js';
+
 
 // Fix __dirname and __filename for ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -18,48 +24,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// === Conditional session store setup ===
-let sessionStore;
-const MySQLStore = expressMySQLSession(session);
-
-if (process.env.NODE_ENV === "testing") {
-  // PostgreSQL (Render)
-  const { Pool } = pkg;
-  const pgSession = connectPgSimple(session);
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
-  sessionStore = new pgSession({
-    pool,
-    tableName: "session",
-    createTableIfMissing: true,
-  });
-
-  console.log("Using PostgreSQL session store (production)");
-} else {
-  // MySQL (local dev)
-  // console.log(process.env.DB_PASSWORD);
-  sessionStore = new MySQLStore({
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_NAME || "chatbot_db",
-    port: process.env.DB_PORT || 3306,
-  });
-
-  console.log("Using MySQL session store (development)");
-}
-
-// === Routes ===
-// Uncomment or add these once the files exist
-import geminiRoutes from "./routes/gemini_routes/gemini.js";
-import erevukaRoutes from "./routes/erevuka_routes/erevuka.js";
-import akiRoutes from "./routes/aki_routes/aki.js";
-import messageRoutes from "./routes/message.js";
 
 // === CORS setup ===
 const allowedOrigins = [
@@ -91,6 +55,15 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 app.set("trust proxy", 1);
 
+//check environment 
+const isDev = process.env.NODE_ENV === 'development';
+
+const cookieOptions = {
+  secure: !isDev, // true in production & testing, false in development
+  sameSite: !isDev ? 'none' : 'lax', // none for prod/testing, lax for dev
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
+};
+
 // === Session ===
 app.use(
   session({
@@ -98,11 +71,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
-    cookie: {
-      secure: process.env.NODE_ENV == "production",
-      sameSite: process.env.NODE_ENV == "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    },
+    cookie: cookieOptions,
   })
 );
 
@@ -111,6 +80,7 @@ app.use("/api", geminiRoutes);
 app.use("/api", erevukaRoutes);
 app.use("/api", akiRoutes);
 app.use("/api", messageRoutes);
+app.use("/api", userRoutes);
 
 // === Root route ===
 app.get("/", (req, res) => {
