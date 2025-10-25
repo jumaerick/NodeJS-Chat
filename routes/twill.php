@@ -16,3 +16,4 @@ TwillRoutes::module('interests');
 TwillRoutes::module('courses');
 
 Route::post('/coursesMetaData/updates/{id}', 'CourseController@coursesMetaDataUpdate')->name('coursesMetaDataUpdate');
+TwillRoutes::module('chatLogs');

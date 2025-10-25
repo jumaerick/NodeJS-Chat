@@ -40,7 +40,7 @@ class HomeController extends Controller
         return view('recommendations', compact('recommendations'));
     }
 
-    public function akiChatLogs($id){
+    public function chatLogs($id){
 
         $perPage = $this->perPage;
         $currentPage = request()->get('page', 1);

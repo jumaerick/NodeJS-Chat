@@ -48,6 +48,12 @@ class AdminMenu
                 ->title('Courses') //
         );
 
+        TwillNavigation::addLink(
+            NavigationLink::make()
+                ->forModule('chatLogs')
+                ->title('AI Searches') //
+        );
+
         // Example: Add a group with links
         // TwillNavigation::addGroup(
         //     NavigationGroup::make('Content')
