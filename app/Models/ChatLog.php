@@ -12,6 +12,8 @@ class ChatLog extends Model implements Sortable
 {
     use HasBlocks, HasRevisions, HasPosition;
 
+    protected $table='chat_logs';
+
     protected $fillable = [
         'search_id',
         'session_id',

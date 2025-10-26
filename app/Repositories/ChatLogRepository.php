@@ -19,9 +19,9 @@ class ChatLogRepository extends ModuleRepository
 
        public function filter(Builder $query, array $scopes = []): Builder
     {
-        dd(request()->filter);
+        // dd(request()->filter);
         if(isset($scopes['search'])){
-        dd($scopes);
+        // dd($scopes);
         }
         // if (TwillPermissions::enabled()) {
         //     $query->where('is_superadmin', '<>', true);

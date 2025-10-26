@@ -3,17 +3,31 @@
 namespace App\Service;
 
 use App\Models\Course;
+use App\Service\StopWordService;
+use Illuminate\Support\Str;
 
 class RecommendationEngine
 {
+
+    // protected $stopWordService;
+
+    public function __construct(StopWordService $stopWordService)
+    {
+        $this->stopWordService = $stopWordService;
+    }
+
+
     public function recommendCourses($user)
     {
+        //Fetch all the AI search terms of the user
+        $searchTerms = $user->chatSearches->pluck('message');
+        // dd($chatLogs);
+        
         $courses = Course::with(['domainFields', 'skillLevelFields', 'interestFields', 'learningGoalFields'])->get();
         $recommendations = [];
-
+        $score = 0;
+        $reasons = [];
         foreach ($courses as $course) {
-            $score = 0;
-            $reasons = [];
 // dd($user->interestFields);
             // Domain overlap
             $sharedDomains = $course->domainFields->pluck('id')->intersect($user->domainFields->pluck('id'));
@@ -52,6 +66,12 @@ class RecommendationEngine
             }
         }
 
+        //Lets also add compute the score of individual searches
+        foreach($searchTerms as $term) {
+            $converted = collect(explode(' ', $this->stopWordService->removeStopWords(Str::lower($term))));
+            
+            dd($converted);
+        }
         // Sort by score descending
 
         usort($recommendations, fn($a, $b) => $b['score'] <=> $a['score']);

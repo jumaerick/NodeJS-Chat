@@ -6,6 +6,7 @@ use App\Models\SkillLevel;
 use App\Models\Interest;
 use App\Models\LearninGoal;
 use App\Models\UserMetaData;
+use App\Models\ChatLog;
 
 use A17\Twill\Models\User as TwillBaseUser;
 
@@ -70,6 +71,11 @@ class User extends TwillBaseUser
 
     public function userMetaData(){
         return $this->hasMany(UserMetaData::class);
+    }
+
+    public function chatSearches(){
+        // dd(ChatLog::take(5)->get());
+        return $this->hasMany(ChatLog::class, 'user_id');
     }
 
 }
