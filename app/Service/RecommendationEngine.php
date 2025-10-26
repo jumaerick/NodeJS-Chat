@@ -51,27 +51,25 @@ class RecommendationEngine
             }
 
             //Skill level (assuming single)
+            // dd($user->skillLevelFields);
             $sharedSkills = $course->skillLevelFields->pluck('id')->intersect($user->skillLevelFields->pluck('id'));
             if ($sharedSkills->isNotEmpty()) {
                 $score += $sharedSkills->count();
                 $reasons[] = 'fits your skill levels';
             }
 
-            if ($score > 0) {
-                $recommendations[] = [
-                    'course' => $course,
-                    'score' => $score,
-                    'reasons' => implode(', ', $reasons),
-                ];
+            // $sharesSearches = 
+            //Lets also add compute the score of individual searches
+            dd($course->interestFields->pluck('title'));
+            foreach($searchTerms as $term) {
+                $keyWords = collect(explode(' ', $this->stopWordService->removeStopWords(Str::lower($term))));
+                
+            // foreach($keyWords as $keyword){
+            //     // if($)
+            // }
             }
         }
 
-        //Lets also add compute the score of individual searches
-        foreach($searchTerms as $term) {
-            $converted = collect(explode(' ', $this->stopWordService->removeStopWords(Str::lower($term))));
-            
-            dd($converted);
-        }
         // Sort by score descending
 
         usort($recommendations, fn($a, $b) => $b['score'] <=> $a['score']);
