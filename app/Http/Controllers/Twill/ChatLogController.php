@@ -64,6 +64,13 @@ class ChatLogController extends BaseModuleController
                 'visible' => true,  // you can toggle visibility
 
             ],
+
+            'keywords' => [
+                'title' => 'Keywords',
+                'field' => 'key_word',
+                'visible' => true,  // you can toggle visibility
+
+            ],
             'search_date' => [
                 'title' => 'Search Date',
                 'field' => 'search_date',

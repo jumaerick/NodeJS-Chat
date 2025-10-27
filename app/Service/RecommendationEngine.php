@@ -20,7 +20,7 @@ class RecommendationEngine
     public function recommendCourses($user)
     {
         //Fetch all the AI search terms of the user
-        $searchTerms = $user->chatSearches->pluck('message');
+        $searchTerms = $user->chatSearches->pluck('keywords');
         // dd($chatLogs);
         
         $courses = Course::with(['domainFields', 'skillLevelFields', 'interestFields', 'learningGoalFields'])->get();
@@ -28,7 +28,7 @@ class RecommendationEngine
         $score = 0;
         $reasons = [];
         foreach ($courses as $course) {
-// dd($user->interestFields);
+// var_dump($course->domainFields->pluck('title'));
             // Domain overlap
             $sharedDomains = $course->domainFields->pluck('id')->intersect($user->domainFields->pluck('id'));
             if ($sharedDomains->isNotEmpty()) {
@@ -60,15 +60,34 @@ class RecommendationEngine
 
             // $sharesSearches = 
             //Lets also add compute the score of individual searches
-            dd($course->interestFields->pluck('title'));
-            foreach($searchTerms as $term) {
-                $keyWords = collect(explode(' ', $this->stopWordService->removeStopWords(Str::lower($term))));
-                
-            // foreach($keyWords as $keyword){
-            //     // if($)
-            // }
+            //convert interests to lower case
+            $interestFields = $course->interestFields->pluck('title')->toArray();
+            $interestFieldsLower = array_map('Str::lower', $interestFields);
+
+            $matchedTerms = 0;
+            // dd($searchTerms);
+            //For each term determine if it matches the course interests
+            foreach ($searchTerms as $term) {
+                $lowered = array_map('Str::lower', $term);
+                foreach ($lowered as $lower) {
+                    if (in_array($lower, $interestFieldsLower)) {
+                        $matchedTerms++;
+                        $reasons[] = "matched search term '{$lower}'";
+                    }
+                }   
             }
+
+
+            $score+=$matchedTerms;
+                $recommendations[] = [
+                'course' => $course->title,
+                'score' => $score,
+                'reasons' => implode(', ', array_unique($reasons))
+                ];
+
+
         }
+        dd($recommendations);
 
         // Sort by score descending
 
@@ -78,7 +97,7 @@ class RecommendationEngine
             return count(explode(',', $recommendation['reasons'])) >= 2;
         });
 
-        // dd($recommendations);
+        dd($recommendations);
         return $recommendations;
     }
 }

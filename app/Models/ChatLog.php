@@ -20,8 +20,18 @@ class ChatLog extends Model implements Sortable
         'user_id',
         'message',
         'remote_ip',
+        'company_id',
+        'keywords',
         'search_date',
     ];
 
+    protected $casts = [
+     'keywords' => 'array',
+    ];
+
+    public function getKeyWordAttribute(){
+        return implode(', ', $this->keywords);
+        // dd(implode(',', $this->keywords));
+    }
     
 }

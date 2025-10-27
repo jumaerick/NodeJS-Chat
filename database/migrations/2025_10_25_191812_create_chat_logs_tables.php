@@ -16,10 +16,12 @@ return new class extends Migration
             // $table->string('title', 200)->nullable();
 
             // your generated model and form include a description field, to get you started, but feel free to get rid of it if you don't need it
-            $table->text('search_id')->nullable();
+            $table->integer('search_id')->nullable();
             $table->text('session_id')->nullable();
-            $table->text('user_id')->nullable();
+            $table->integer('user_id')->nullable();
+            $table->integer('company_id')->nullable();
             $table->text('message')->nullable();
+            $table->json('keywords')->nullable();
             $table->text('remote_ip')->nullable();
             $table->timestamp('search_date')->nullable();
             $table->integer('position')->unsigned()->nullable();
