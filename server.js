@@ -27,7 +27,8 @@ const PORT = process.env.PORT || 3000;
 
 // === CORS setup ===
 const allowedOrigins = [
-  "https://erevuka-chat.onrender.com",
+  // "https://erevuka-chat.onrender.com",
+  "https://chat-application-qjuq.onrender.com",
   "http://localhost:1000",
   "http://localhost:3000",
 ];
