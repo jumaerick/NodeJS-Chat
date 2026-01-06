@@ -4,6 +4,7 @@ import { createChatLog } from "../models/chatLogModel.js"; // Use the model dire
 
 const router = express.Router();
 const isTesting = process.env.NODE_ENV === "testing";
+console.log(isTesting, 'hapa');
 
 let mysqlPromise;
 if (!isTesting) {
