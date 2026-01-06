@@ -12,7 +12,7 @@ import geminiRoutes from "./routes/gemini_routes/gemini.js";
 import erevukaRoutes from "./routes/erevuka_routes/erevuka.js";
 import akiRoutes from "./routes/aki_routes/aki.js";
 import messageRoutes from "./routes/message.js";
-import userRoutes from './routes/userRoutes.js';
+import userRoutes from './routes/chatLogRoutes.js';
 
 
 // Fix __dirname and __filename for ES Modules
@@ -27,13 +27,7 @@ const PORT = process.env.PORT || 3000;
 
 // === CORS setup ===
 const allowedOrigins = [
-  "https://courses.erevuka.org",
   "https://erevuka-chat.onrender.com",
-  "https://apps.courses.farwell-consultants.com",
-  "https://courses.farwell-consultants.com",
-  "https://courses.akinsure.com",
-  "https://apps.courses.akinsure.com",
-  "https://api.erevuka.org",
   "http://localhost:1000",
   "http://localhost:3000",
 ];
