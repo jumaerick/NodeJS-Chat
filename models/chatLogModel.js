@@ -1,9 +1,9 @@
-import {db} from '../config/db.js';
+import {mysqlDb} from '../config/db.js';
 import platformMapper from  '../config/platformMapper.js'
 
 let mysqlPromise;
 
-mysqlPromise = db.promise();
+mysqlPromise = mysqlDb.promise();
 
 export const getAllChatLogs = async () => {
   const [rows] = await mysqlPromise.query('SELECT * FROM chatbot_logs');
