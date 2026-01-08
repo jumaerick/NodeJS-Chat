@@ -1,5 +1,5 @@
 import express from "express";
-import { db } from "../config/db.js";
+import { mysqlDb, pgDb } from "../config/db.js";
 import { createChatLog } from "../models/chatLogModel.js"; // Use the model directly
 
 const router = express.Router();
@@ -8,7 +8,7 @@ console.log(isTesting, 'hapa');
 
 let mysqlPromise;
 if (!isTesting) {
-  mysqlPromise = db.promise(); // promise wrapper for MySQL
+  mysqlPromise = mysqlDb.promise(); // promise wrapper for MySQL
 }
 
 // === POST /api/saveMessage ===
@@ -39,7 +39,7 @@ router.post("/saveMessage", async (req, res) => {
         );
       `;
       console.log('will store in postgress');
-      await db.query(createTableQuery);
+      await pgDb.query(createTableQuery);
 
       // Insert using model function
       newLog = await createChatLog(message, sender, platform, ip, "postgresql");
