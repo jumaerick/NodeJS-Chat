@@ -38,6 +38,7 @@ router.post("/saveMessage", async (req, res) => {
           created_at TIMESTAMPTZ DEFAULT NOW()
         );
       `;
+      console.log('will store in postgress');
       await db.query(createTableQuery);
 
       // Insert using model function
