@@ -1,49 +1,105 @@
-import {mysqlDb} from '../config/db.js';
-import platformMapper from  '../config/platformMapper.js'
+import { mysqlDb, pgDb } from "../config/db.js";
+import platformMapper from "../config/platformMapper.js";
 
-let mysqlPromise;
+const isTesting = process.env.NODE_ENV === "testing";
+const mysqlPromise = !isTesting ? mysqlDb.promise() : null;
 
-mysqlPromise = mysqlDb.promise();
-
+// ================= GET ALL =================
 export const getAllChatLogs = async () => {
-  const [rows] = await mysqlPromise.query('SELECT * FROM chatbot_logs');
+  if (isTesting) {
+    const { rows } = await pgDb.query("SELECT * FROM chatbot_logs");
+    return rows;
+  }
+
+  const [rows] = await mysqlPromise.query("SELECT * FROM chatbot_logs");
   return rows;
 };
 
-//convert the project entries to lower case 
+// ================= GET BY PLATFORM =================
 export const getChatLogByPlatform = async (id) => {
-  var convertedId = parseInt(id);
-const [rows] = await mysqlPromise.query(
-  'SELECT * FROM chatbot_logs WHERE LOWER(project) = ?',
-  [platformMapper.get(convertedId)]
-);
+  const platform = platformMapper.get(parseInt(id));
+
+  if (isTesting) {
+    const { rows } = await pgDb.query(
+      "SELECT * FROM chatbot_logs WHERE LOWER(project) = $1",
+      [platform]
+    );
+    return rows;
+  }
+
+  const [rows] = await mysqlPromise.query(
+    "SELECT * FROM chatbot_logs WHERE LOWER(project) = ?",
+    [platform]
+  );
 
   return rows;
 };
 
-export const createChatLog = async (message, user_id, project, remote_ip) => {
-  // Convert project to lowercase
+// ================= CREATE =================
+export const createChatLog = async (
+  message,
+  user_id,
+  project,
+  remote_ip
+) => {
   const lowerProject = project.toLowerCase();
 
+  if (isTesting) {
+    const query = `
+      INSERT INTO chatbot_logs (message, user_id, project, remote_ip)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;
+    `;
+
+    const { rows } = await pgDb.query(query, [
+      message,
+      user_id,
+      lowerProject,
+      remote_ip,
+    ]);
+
+    return rows[0];
+  }
+
   const [result] = await mysqlPromise.query(
-    'INSERT INTO chatbot_logs (message, user_id, project, remote_ip) VALUES (?, ?, ?, ?)',
+    "INSERT INTO chatbot_logs (message, user_id, project, remote_ip) VALUES (?, ?, ?, ?)",
     [message, user_id, lowerProject, remote_ip]
   );
 
-  return { id: result.insertId, message, user_id, project: lowerProject, remote_ip };
+  return {
+    id: result.insertId,
+    message,
+    user_id,
+    project: lowerProject,
+    remote_ip,
+  };
 };
 
-
+// ================= UPDATE =================
 export const updateChatLog = async (id, name, email) => {
-  await mysqlPromise.query('UPDATE users SET name = ?, email = ? WHERE id = ?', [
-    name,
-    email,
-    id,
-  ]);
+  if (isTesting) {
+    await pgDb.query(
+      "UPDATE users SET name = $1, email = $2 WHERE id = $3",
+      [name, email, id]
+    );
+    return { id, name, email };
+  }
+
+  await mysqlPromise.query(
+    "UPDATE users SET name = ?, email = ? WHERE id = ?",
+    [name, email, id]
+  );
+
   return { id, name, email };
 };
 
+// ================= DELETE =================
 export const deleteChatLog = async (id) => {
-  await mysqlPromise.query('DELETE FROM users WHERE id = ?', [id]);
-  return { message: 'User deleted successfully' };
+  if (isTesting) {
+    await pgDb.query("DELETE FROM users WHERE id = $1", [id]);
+    return { message: "User deleted successfully" };
+  }
+
+  await mysqlPromise.query("DELETE FROM users WHERE id = ?", [id]);
+  return { message: "User deleted successfully" };
 };
